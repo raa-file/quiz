@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>اختبار الرياضيات - الصف السادس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#EEF1F6;
+    --card:#FFFFFF;
+    --ink:#1B2440;
+    --ink-soft:#3B4568;
+    --muted:#7C86A0;
+    --line:#DCE1EC;
+    --teal:#2E6F63;
+    --teal-soft:#E4F0ED;
+    --brick:#B23A2E;
+    --brick-soft:#FBEAE8;
+    --amber:#B8862E;
+    --font-display:'Cairo', sans-serif;
+    --font-body:'Tajawal', sans-serif;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);min-height:100vh;}
+  .wrap{max-width:640px;margin:0 auto;padding:28px 20px 60px;}
+  .brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+  .brand h1{font-family:var(--font-display);font-size:1.05rem;font-weight:700;margin:0;color:var(--ink-soft);}
+  .brand .tag{font-size:.78rem;color:var(--muted);background:var(--card);padding:5px 12px;border-radius:100px;border:1px solid var(--line);}
+  .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:28px 24px;box-shadow:0 1px 2px rgba(27,36,64,.04);}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---------- Intro ---------- */
+  #view-intro h2{font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin:0 0 6px;}
+  #view-intro p.sub{color:var(--muted);margin:0 0 24px;font-size:.95rem;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:.85rem;color:var(--ink-soft);margin-bottom:6px;font-weight:500;}
+  .field input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);font-family:var(--font-body);font-size:1rem;background:#FCFDFE;color:var(--ink);}
+  .field input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  .meta-row{display:flex;gap:20px;color:var(--muted);font-size:.85rem;margin:18px 0 4px;}
+  .meta-row span{display:flex;align-items:center;gap:6px;}
+
+  .btn{appearance:none;border:none;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:1rem;border-radius:12px;padding:14px 20px;transition:transform .12s ease, opacity .12s ease;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--ink);color:#fff;width:100%;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary:hover:not(:disabled){opacity:.92;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);}
+  .btn-ghost:hover{color:var(--ink-soft);border-color:var(--muted);}
+
+  /* ---------- Quiz: protractor progress ---------- */
+  .progress-head{display:flex;flex-direction:column;align-items:center;margin-bottom:22px;}
+  .protractor{width:220px;height:120px;}
+  .protractor-label{margin-top:-6px;font-family:var(--font-display);font-weight:800;font-size:1.15rem;color:var(--ink);}
+  .protractor-sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+  .unit-chip{display:inline-block;font-size:.72rem;color:var(--teal);background:var(--teal-soft);padding:4px 12px;border-radius:100px;font-weight:700;margin-bottom:14px;}
+  .question-text{font-family:var(--font-display);font-size:1.28rem;font-weight:700;line-height:1.6;margin:0 0 22px;}
+
+  .opt{display:block;width:100%;text-align:right;padding:14px 16px;margin-bottom:10px;border-radius:12px;border:1.5px solid var(--line);background:#FCFDFE;font-family:var(--font-body);font-size:1rem;color:var(--ink-soft);cursor:pointer;transition:border-color .12s ease, background .12s ease;}
+  .opt:hover{border-color:var(--muted);}
+  .opt:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .opt.selected{border-color:var(--ink);background:#F4F5F9;color:var(--ink);font-weight:700;}
+  .tf-row{display:flex;gap:12px;}
+  .tf-row .opt{text-align:center;font-weight:700;font-size:1.05rem;}
+
+  .quiz-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+  .quiz-footer .btn-primary{width:auto;padding:13px 34px;}
+
+  /* ---------- Result ---------- */
+  #view-result{text-align:center;}
+  .score-ring{width:150px;height:150px;margin:0 auto 18px;}
+  .score-num{font-family:var(--font-display);font-size:2.2rem;font-weight:800;}
+  #view-result h2{font-family:var(--font-display);font-size:1.3rem;margin:0 0 4px;}
+  #view-result p.msg{color:var(--muted);margin:0 0 26px;}
+  .review-list{text-align:right;margin-top:26px;border-top:1px solid var(--line);padding-top:18px;}
+  .review-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:.9rem;}
+  .review-item:last-child{border-bottom:none;}
+  .review-item .q{color:var(--ink-soft);flex:1;}
+  .badge{flex-shrink:0;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:100px;}
+  .badge.ok{background:var(--teal-soft);color:var(--teal);}
+  .badge.no{background:var(--brick-soft);color:var(--brick);}
+
+  /* ---------- Teacher ---------- */
+  .teacher-toggle{display:block;text-align:center;margin-top:26px;font-size:.8rem;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
+  #view-teacher .card{max-width:none;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+  .stat-box{background:#F7F8FB;border:1px solid var(--line);border-radius:14px;padding:16px 10px;text-align:center;}
+  .stat-box .num{font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--ink);}
+  .stat-box .lbl{font-size:.75rem;color:var(--muted);margin-top:2px;}
+  table.results{width:100%;border-collapse:collapse;font-size:.88rem;}
+  table.results th{text-align:right;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1.5px solid var(--line);font-size:.78rem;}
+  table.results td{padding:10px 6px;border-bottom:1px solid var(--line);}
+  .bar-cell{display:flex;align-items:center;gap:8px;}
+  .bar-track{flex:1;height:7px;background:#E9ECF3;border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--teal);}
+  .q-stats{margin-top:26px;}
+  .q-stats h3{font-family:var(--font-display);font-size:1rem;margin:0 0 12px;}
+  .q-stat-row{display:flex;align-items:center;gap:10px;font-size:.85rem;margin-bottom:9px;}
+  .q-stat-row .qn{width:24px;flex-shrink:0;color:var(--muted);font-weight:700;}
+  .q-stat-row .pct{width:40px;flex-shrink:0;text-align:left;font-weight:700;color:var(--ink-soft);}
+  .empty{text-align:center;color:var(--muted);padding:30px 0;font-size:.9rem;}
+  .gate-row{display:flex;gap:10px;}
+  .gate-row input{flex:1;}
+  .refresh{background:none;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:.8rem;color:var(--muted);cursor:pointer;}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <h1>اختبار الرياضيات · الصف السادس</h1>
+    <span class="tag" id="brandTag">وحدات مختلطة</span>
+  </div>
+
+  <!-- INTRO -->
+  <div class="view active" id="view-intro">
+    <div class="card">
+      <h2>قبل ما نبدأ</h2>
+      <p class="sub">اكتب بياناتك ثم اضغط "ابدأ الاختبار". الاختبار يحتوي على 10 أسئلة تجمع بين الاختيار من متعدد وصح/خطأ.</p>
+      <div class="field">
+        <label for="inName">اسم الطالبة/الطالب</label>
+        <input type="text" id="inName" placeholder="مثال: سارة أحمد">
+      </div>
+      <div class="field">
+        <label for="inSection">الفصل</label>
+        <input type="text" id="inSection" placeholder="مثال: 6/2">
+      </div>
+      <button class="btn btn-primary" id="btnStart" disabled>ابدأ الاختبار</button>
+    </div>
+    <button class="teacher-toggle" id="btnGoTeacher">لوحة المعلمة ←</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="view" id="view-quiz">
+    <div class="card">
+      <div class="progress-head">
+        <svg class="protractor" viewBox="0 0 220 120" id="protractorSvg" aria-hidden="true"></svg>
+        <div class="protractor-label" id="progressLabel">السؤال 1 من 10</div>
+        <div class="protractor-sub" id="progressSub">0 إجابات صحيحة حتى الآن</div>
+      </div>
+      <div class="unit-chip" id="unitChip">كسور</div>
+      <div class="question-text" id="questionText">نص السؤال</div>
+      <div id="optionsWrap"></div>
+      <div class="quiz-footer">
+        <button class="btn btn-ghost" id="btnPrev">السابق</button>
+        <button class="btn btn-primary" id="btnNext" disabled>التالي</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="view" id="view-result">
+    <div class="card">
+      <svg class="score-ring" viewBox="0 0 150 150" id="scoreRingSvg" aria-hidden="true"></svg>
+      <h2 id="resultTitle">أحسنت!</h2>
+      <p class="msg" id="resultMsg"></p>
+      <div class="review-list" id="reviewList"></div>
+    </div>
+  </div>
+
+  <!-- TEACHER GATE -->
+  <div class="view" id="view-teacher-gate">
+    <div class="card">
+      <h2 style="font-family:var(--font-display);font-size:1.3rem;margin:0 0 6px;">لوحة المعلمة</h2>
+      <p class="sub" style="color:var(--muted);margin:0 0 20px;font-size:.9rem;">أدخلي رمز الدخول لعرض نتائج الطالبات.</p>
+      <div class="gate-row">
+        <input type="password" id="teacherPass" placeholder="رمز الدخول">
+        <button class="btn btn-primary" style="width:auto;padding:12px 22px;" id="btnTeacherEnter">دخول</button>
+      </div>
+      <p id="gateError" style="color:var(--brick);font-size:.82rem;margin-top:10px;display:none;">رمز الدخول غير صحيح.</p>
+      <button class="teacher-toggle" id="btnBackFromGate">← رجوع للاختبار</button>
+    </div>
+  </div>
+
+  <!-- TEACHER DASHBOARD -->
+  <div class="view" id="view-teacher">
+    <div class="card">
+      <div class="top-bar">
+        <h2 style="font-family:var(--font-display);font-size:1.2rem;margin:0;">نتائج الطالبات</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="refresh" id="btnRefresh">تحديث</button>
+          <button class="refresh" id="btnExit">خروج</button>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num" id="statCount">0</div><div class="lbl">عدد المحاولات</div></div>
+        <div class="stat-box"><div class="num" id="statAvg">0%</div><div class="lbl">المتوسط</div></div>
+        <div class="stat-box"><div class="num" id="statPass">0%</div><div class="lbl">نسبة النجاح (60%+)</div></div>
+      </div>
+      <div id="teacherContent"><div class="empty">جارٍ التحميل...</div></div>
+      <div class="q-stats" id="qStatsBlock" style="display:none;">
+        <h3>نسبة الإجابة الصحيحة لكل سؤال</h3>
+        <div id="qStatsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   SUPABASE CONFIG — عدّلي هذين السطرين ببيانات مشروعك في Supabase
+   ========================================================= */
+const SUPABASE_URL = 'https://hhawargduxuzvxltryyq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoYXdhcmdkdXh1enZ4bHRyeXlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MzExNjIsImV4cCI6MjEwMzQwNzE2Mn0.Zr_mtPx2RZw6CZv0EX7MIzTDBcVvgkFpbsF1bI03GZ8';
+const TEACHER_PASSCODE = '1234'; // غيّري الرمز حسب رغبتك
+
+/* SQL اللازم إنشاؤه في Supabase (SQL Editor):
+
+create table quiz_results (
+  id uuid default gen_random_uuid() primary key,
+  student_name text,
+  student_section text,
+  score int,
+  total int,
+  answers jsonb,
+  created_at timestamptz default now()
+);
+
+alter table quiz_results enable row level security;
+
+create policy "allow insert" on quiz_results
+  for insert to anon with check (true);
+
+create policy "allow select" on quiz_results
+  for select to anon using (true);
+
+*/
+
+let supabase = null;
+try{
+  if(SUPABASE_URL && SUPABASE_URL.startsWith('http')){
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.warn('Supabase init skipped', e); }
+
+/* ---------------- Questions ---------------- */
+const QUESTIONS = [
+  { type:'mcq', unit:'كسور', q:'ما ناتج جمع 3/4 + 1/8 ؟', options:['7/8','1','5/8','4/12'], answer:0 },
+  { type:'tf',  unit:'عشريات', q:'العدد 0.45 أكبر من 0.5', answer:false },
+  { type:'mcq', unit:'هندسة', q:'مستطيل طوله 8 سم وعرضه 5 سم، ما مساحته؟', options:['13 سم²','26 سم²','40 سم²','45 سم²'], answer:2 },
+  { type:'tf',  unit:'نسبة وتناسب', q:'النسبة 4 : 8 تكافئ النسبة 1 : 2', answer:true },
+  { type:'mcq', unit:'نسبة مئوية', q:'ما هو 25% من العدد 160؟', options:['30','40','45','50'], answer:1 },
+  { type:'tf',  unit:'أعداد صحيحة', q:'ناتج (-5) + 3 يساوي 2', answer:false },
+  { type:'mcq', unit:'هندسة', q:'مربع طول ضلعه 6 سم، ما محيطه؟', options:['12 سم','18 سم','24 سم','36 سم'], answer:2 },
+  { type:'tf',  unit:'كسور وعشريات', q:'الكسر 1/4 يساوي 0.25 على صورة عدد عشري', answer:true },
+  { type:'mcq', unit:'نسبة وتناسب', q:'إذا كانت 3 أقلام تكلف 6 ريالات، فكم تكلفة 5 أقلام بنفس السعر؟', options:['8 ريال','10 ريال','12 ريال','15 ريال'], answer:1 },
+  { type:'tf',  unit:'ترتيب العمليات', q:'ناتج 2 + 3 × 4 يساوي 20', answer:false },
+];
+
+/* ---------------- State ---------------- */
+let state = { name:'', section:'', current:0, answers:new Array(QUESTIONS.length).fill(null) };
+
+const $ = id => document.getElementById(id);
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ---------------- Intro ---------------- */
+function checkIntro(){
+  $('btnStart').disabled = !($('inName').value.trim() && $('inSection').value.trim());
+}
+$('inName').addEventListener('input', checkIntro);
+$('inSection').addEventListener('input', checkIntro);
+$('btnStart').addEventListener('click', ()=>{
+  state.name = $('inName').value.trim();
+  state.section = $('inSection').value.trim();
+  state.current = 0;
+  state.answers = new Array(QUESTIONS.length).fill(null);
+  showView('view-quiz');
+  renderQuestion();
+});
+
+/* ---------------- Protractor progress (signature element) ---------------- */
+function drawProtractor(){
+  const total = QUESTIONS.length;
+  const answered = state.answers.filter(a=>a!==null).length;
+  const svg = $('protractorSvg');
+  const cx=110, cy=110, r=88;
+  let ticks='';
+  for(let i=0;i<total;i++){
+    const angle = Math.PI - (i/(total-1))*Math.PI;
+    const x1 = cx + (r-10)*Math.cos(angle);
+    const y1 = cy - (r-10)*Math.sin(angle);
+    const x2 = cx + r*Math.cos(angle);
+    const y2 = cy - r*Math.sin(angle);
+    const done = i < answered;
+    const current = i === state.current;
+    ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${done? '#2E6F63' : (current? '#1B2440':'#DCE1EC')}" stroke-width="${current?5:3.5}" stroke-linecap="round"/>`;
+  }
+  const arcPath = `M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+  svg.innerHTML = `<path d="${arcPath}" fill="none" stroke="#EEF1F6" stroke-width="1"/>${ticks}`;
+  $('progressLabel').textContent = `السؤال ${state.current+1} من ${total}`;
+  const correctSoFar = state.answers.slice(0, state.current).filter((a,i)=> a!==null && isCorrect(i,a)).length;
+  $('progressSub').textContent = `${correctSoFar} إجابة صحيحة حتى الآن`;
+}
+function isCorrect(i, val){
+  const q = QUESTIONS[i];
+  return q.type==='mcq' ? val===q.answer : val===q.answer;
+}
+
+/* ---------------- Quiz rendering ---------------- */
+function renderQuestion(){
+  const q = QUESTIONS[state.current];
+  $('unitChip').textContent = q.unit;
+  $('questionText').textContent = q.q;
+  const wrap = $('optionsWrap');
+  wrap.innerHTML = '';
+  const selected = state.answers[state.current];
+
+  if(q.type==='mcq'){
+    q.options.forEach((opt, idx)=>{
+      const b = document.createElement('button');
+      b.className = 'opt' + (selected===idx ? ' selected':'');
+      b.textContent = opt;
+      b.addEventListener('click', ()=>{ state.answers[state.current]=idx; renderQuestion(); });
+      wrap.appendChild(b);
+    });
+  } else {
+    const row = document.createElement('div');
+    row.className = 'tf-row';
+    [['صح', true], ['خطأ', false]].forEach(([label,val])=>{
+      const b = document.createElement('button');
+      b.className = 'opt' + (selected===val ? ' selected':'');
+      b.style.flex='1';
+      b.textContent = label;
+      b.addEventListener('click', ()=>{ state.answers[state.current]=val; renderQuestion(); });
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+  }
+
+  $('btnPrev').style.visibility = state.current===0 ? 'hidden' : 'visible';
+  $('btnNext').disabled = selected===null;
+  $('btnNext').textContent = state.current === QUESTIONS.length-1 ? 'إنهاء الاختبار' : 'التالي';
+  drawProtractor();
+}
+
+$('btnPrev').addEventListener('click', ()=>{ if(state.current>0){ state.current--; renderQuestion(); }});
+$('btnNext').addEventListener('click', ()=>{
+  if(state.current < QUESTIONS.length-1){
+    state.current++; renderQuestion();
+  } else {
+    finishQuiz();
+  }
+});
+
+/* ---------------- Result ---------------- */
+async function finishQuiz(){
+  const score = state.answers.filter((a,i)=> a!==null && isCorrect(i,a)).length;
+  const total = QUESTIONS.length;
+  const pct = Math.round((score/total)*100);
+
+  const svg = $('scoreRingSvg');
+  const r=62, cx=75, cy=75, c=2*Math.PI*r;
+  const offset = c - (pct/100)*c;
+  const color = pct>=60 ? '#2E6F63' : '#B23A2E';
+  svg.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EEF1F6" stroke-width="12"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="Cairo" font-weight="800" font-size="26" fill="#1B2440">${pct}%</text>
+  `;
+  $('resultTitle').textContent = pct>=60 ? 'أحسنت!' : 'حاول مرة أخرى في المرة القادمة';
+  $('resultMsg').textContent = `${score} من ${total} إجابات صحيحة — ${state.name} (${state.section})`;
+
+  const list = $('reviewList');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q,i)=>{
+    const ok = isCorrect(i, state.answers[i]);
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    div.innerHTML = `<span class="q">${i+1}. ${q.q}</span><span class="badge ${ok?'ok':'no'}">${ok?'صحيح':'خطأ'}</span>`;
+    list.appendChild(div);
+  });
+
+  showView('view-result');
+  await saveResult(score, total);
+}
+
+async function saveResult(score, total){
+  if(!supabase) return;
+  try{
+    await supabase.from('quiz_results').insert({
+      student_name: state.name,
+      student_section: state.section,
+      score, total,
+      answers: state.answers
+    });
+  }catch(e){ console.warn('تعذر حفظ النتيجة', e); }
+}
+
+/* ---------------- Teacher flow ---------------- */
+$('btnGoTeacher').addEventListener('click', ()=> showView('view-teacher-gate'));
+$('btnBackFromGate').addEventListener('click', ()=> showView('view-intro'));
+$('btnTeacherEnter').addEventListener('click', enterTeacher);
+$('teacherPass').addEventListener('keydown', e=>{ if(e.key==='Enter') enterTeacher(); });
+
+function enterTeacher(){
+  if($('teacherPass').value === TEACHER_PASSCODE){
+    $('gateError').style.display='none';
+    showView('view-teacher');
+    loadTeacherData();
+  } else {
+    $('gateError').style.display='block';
+  }
+}
+$('btnExit').addEventListener('click', ()=> showView('view-intro'));
+$('btnRefresh').addEventListener('click', loadTeacherData);
+
+async function loadTeacherData(){
+  const content = $('teacherContent');
+  const qStatsBlock = $('qStatsBlock');
+  if(!supabase){
+    content.innerHTML = `<div class="empty">لم يتم ربط قاعدة البيانات بعد. أضيفي بيانات Supabase في أعلى ملف الاختبار (SUPABASE_URL و SUPABASE_ANON_KEY) لتفعيل لوحة النتائج.</div>`;
+    qStatsBlock.style.display='none';
+    return;
+  }
+  content.innerHTML = `<div class="empty">جارٍ التحميل...</div>`;
+  const { data, error } = await supabase.from('quiz_results').select('*').order('created_at', {ascending:false});
+  if(error){
+    content.innerHTML = `<div class="empty">تعذر تحميل النتائج. تأكدي من صلاحيات الجدول (RLS).</div>`;
+    return;
+  }
+  if(!data || data.length===0){
+    content.innerHTML = `<div class="empty">لا توجد نتائج بعد.</div>`;
+    $('statCount').textContent='0'; $('statAvg').textContent='0%'; $('statPass').textContent='0%';
+    qStatsBlock.style.display='none';
+    return;
+  }
+
+  const count = data.length;
+  const avgPct = Math.round(data.reduce((s,r)=> s + (r.score/r.total*100), 0) / count);
+  const passRate = Math.round(data.filter(r=> (r.score/r.total*100) >= 60).length / count * 100);
+  $('statCount').textContent = count;
+  $('statAvg').textContent = avgPct + '%';
+  $('statPass').textContent = passRate + '%';
+
+  let rows = '';
+  data.forEach(r=>{
+    const pct = Math.round(r.score/r.total*100);
+    rows += `<tr>
+      <td>${escapeHtml(r.student_name||'')}</td>
+      <td>${escapeHtml(r.student_section||'')}</td>
+      <td>${r.score}/${r.total}</td>
+      <td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span style="font-size:.78rem;color:var(--muted);">${pct}%</span></div></td>
+    </tr>`;
+  });
+  content.innerHTML = `<table class="results">
+    <thead><tr><th>الاسم</th><th>الفصل</th><th>الدرجة</th><th>النسبة</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  const perQ = QUESTIONS.map((q,i)=>{
+    const correctCount = data.filter(r=> Array.isArray(r.answers) && r.answers[i]!==null && r.answers[i]===q.answer).length;
+    return Math.round(correctCount/count*100);
+  });
+  $('qStatsList').innerHTML = perQ.map((pct,i)=>`
+    <div class="q-stat-row">
+      <span class="qn">س${i+1}</span>
+      <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${pct}%;background:${pct>=60?'#2E6F63':'#B23A2E'}"></div></div>
+      <span class="pct">${pct}%</span>
+    </div>`).join('');
+  qStatsBlock.style.display='block';
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>
